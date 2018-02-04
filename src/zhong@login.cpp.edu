@@ -1,0 +1,240 @@
+//
+// Name: Hong, Zhou
+// Project: #2 JCalculator
+// Due: 1/29/2018
+// Course: CS-245-01-w18
+//
+// Description:
+// A simple calculator implemented using Java Swing
+//
+
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+
+public class JCalculator {
+	private static JFrame frame;
+	private static JButton[] buttons;
+	private static JTextField tf;
+	private static JPanel panel;
+	private static Long d1 = null;
+	private static Long d2 = null;
+	private static String operator = "";
+	private static boolean needReset = false;
+	private static boolean isEqualPressed = false;
+	//------------------------------------------------------------------------
+	// main function
+	public static void main(String[] args) {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				initialize();
+			}
+		});
+	}
+	//------------------------------------------------------------------------
+	// initialize GUI
+	private static void initialize() {
+		setUpTextField();
+		setUpPanel();
+		createAndAddButton();
+		setUpFrame();
+	}
+	//------------------------------------------------------------------------
+	// initialize panel
+	private static void setUpPanel() {
+		panel = new JPanel(new GridLayout(4,4));
+		panel.setSize(400, 400);
+		panel.setLocation(0,100);
+	}
+	//------------------------------------------------------------------------
+	// initialize textfield
+	private static void setUpTextField() {
+		Font font = new Font("Calibri", Font.PLAIN, 40);
+		tf = new JTextField(10);
+		tf.setSize(400, 100);
+		tf.setEditable(false);
+		tf.setText("0");
+		tf.setFont(font);
+		tf.setHorizontalAlignment(SwingConstants.RIGHT);
+	}
+	//------------------------------------------------------------------------
+	// initialize frame
+	private static void setUpFrame() {
+		frame = new JFrame("Calculator");
+		frame.setLayout(null);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(400, 520);
+		frame.setVisible(true);
+		frame.setResizable(false);
+		frame.add(tf);
+		frame.add(panel);
+		panel.getRootPane().setDefaultButton(buttons[14]);
+	}
+	//------------------------------------------------------------------------
+	// initialize button
+	private static void createAndAddButton() {
+		Font font = new Font("Calibri", Font.PLAIN, 30);
+		buttons = new JButton[16];
+		buttons[0] = new JButton("7");
+		buttons[1] = new JButton("8");
+		buttons[2] = new JButton("9");
+		buttons[3] = new JButton("/");
+		buttons[4] = new JButton("4");
+		buttons[5] = new JButton("5");
+		buttons[6] = new JButton("6");
+		buttons[7] = new JButton("*");
+		buttons[8] = new JButton("1");
+		buttons[9] = new JButton("2");
+		buttons[10] = new JButton("3");
+		buttons[11] = new JButton("-");
+		buttons[12] = new JButton("C");
+		buttons[13] = new JButton("0");
+		buttons[14] = new JButton("=");
+		buttons[15] = new JButton("+");
+//		buttons[12].addKeyListener(new KeyAdapter() {
+//			public void keyPressed(KeyEvent ke) {
+//				if (ke.isControlDown() && ke.isShiftDown()) {
+//					tf.setText("(c) 2018 Zhou Hong");
+//				}
+//			}
+//		});
+		for (int i = 0; i < 16; i++) {
+			buttons[i].setFont(font);
+			buttons[i].addActionListener(new MyActionListener());
+			panel.add(buttons[i]);
+		}
+	}
+	//------------------------------------------------------------------------
+	// Action Listener
+	static class MyActionListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent ae) {
+			JButton button = (JButton) ae.getSource();
+			if (button.getText().equals("1") ||
+				button.getText().equals("2") ||
+				button.getText().equals("3") ||
+				button.getText().equals("4") ||
+				button.getText().equals("5") ||
+				button.getText().equals("6") ||
+				button.getText().equals("7") ||
+				button.getText().equals("8") ||
+				button.getText().equals("9") ||
+				button.getText().equals("0")) {
+				if (!tf.getText().equals("Overflow") &&
+					!tf.getText().equals("Div by 0") &&
+					!tf.getText().equals("(c) 2018 Zhou Hong")) {
+					if (!needReset && tf.getText().length() >= 10) {
+						tf.setText("Overflow");
+					} else if (tf.getText().equals("0") || needReset) {
+						tf.setText(button.getText());
+						needReset = false;
+						if(isEqualPressed) {
+							isEqualPressed = false;
+							d1 = null;
+						}
+					} else if (!tf.getText().equals("Overflow") && !tf.getText().equals("Div by 0")
+							&& !tf.getText().equals("(c) 2018 Zhou Hong")) {
+						tf.setText(tf.getText() + button.getText());
+						if(isEqualPressed) {
+							isEqualPressed = false;
+							d1 = null;
+						}
+					}
+					
+				}
+			} else if (button.getText().equals("+") ||
+					   button.getText().equals("-") ||
+					   button.getText().equals("*") ||
+					   button.getText().equals("/")) {
+				if (needReset && !isEqualPressed) {
+					operator = button.getText();
+				} else if (!tf.getText().equals("Overflow") &&
+				           !tf.getText().equals("Div by 0") &&
+					       !tf.getText().equals("(c) 2018 Zhou Hong")) {
+					doOperation();
+					operator = button.getText();
+					needReset = true;
+					isEqualPressed = false;
+				}
+			} else if (button.getText().equals("=")) {
+				if (d1 != null) {
+					if (!tf.getText().equals("Overflow") && 
+						!tf.getText().equals("Div by 0") && 
+						!tf.getText().equals("(c) 2018 Zhou Hong")) {
+						doOperation();
+					}
+					isEqualPressed = true;
+					needReset = true;
+				}
+			} else {
+				tf.setText("0");
+				needReset = false;
+				isEqualPressed = false;
+				d1 = null;
+				d2 = null;
+				operator = "";
+				int modifier = ae.getModifiers();
+				int mask = ActionEvent.CTRL_MASK;
+				if ((modifier & mask) == mask) {
+					tf.setText("(c) 2018 Zhou Hong");
+				}
+			}
+		}
+	}
+	//------------------------------------------------------------------------
+	// helper function that do operations on operands
+	private static void doOperation() {
+		if (d1 == null || isEqualPressed) {
+			if (isEqualPressed) {
+				isEqualPressed = false;
+			} else {
+				d1 = (long)Double.parseDouble(tf.getText());
+			}
+		} else {
+			d2 = (long)Double.parseDouble(tf.getText());
+			if (d2 == 0) {
+				tf.setText("Div by 0");
+			} else {
+				if (operator.equals("+")) {
+					long result = d1 + d2;
+					String s = "" + result;
+					if (s.length() > 10){
+						tf.setText("Overflow");
+					} else {
+						tf.setText(s);
+					}
+					d1 = result;
+				} else if (operator.equals("-")) {
+					long result = d1 - d2;
+					String s = "" + result;
+					if (s.length() > 10){
+						tf.setText("Overflow");
+					} else {
+						tf.setText(s);
+					}
+					tf.setText(s);
+					d1 = result;
+				} else if (operator.equals("*")) {
+					long result = d1 * d2;
+					String s = "" + result;
+					if (s.length() > 10){
+						tf.setText("Overflow");
+					} else {
+						tf.setText(s);
+					}
+					d1 = result;
+				} else {
+					long result = d1;
+					result /= d2;
+					String s = "" + result;
+					if (s.length() > 10){
+						tf.setText("Overflow");
+					} else {
+						tf.setText(s);
+					}
+					d1 = result;
+				}
+			}
+		}
+	}
+}
