@@ -48,7 +48,7 @@ public class JCalculator {
 		panel.setLocation(0,100);
 	}
 	//------------------------------------------------------------------------
-	// initialize textfield
+	// initialize text field
 	private static void setUpTextField() {
 		Font font = new Font("Calibri", Font.PLAIN, 40);
 		tf = new JTextField(10);
